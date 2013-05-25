@@ -8,10 +8,5 @@ Based on the work done in the MATLAB code located at github.com/panagiop/the-BPM
 
 Process .wav file to determine the Beats Per Minute.
 
-optional arguments:
-  -h, --help           show this help message and exit
-  --filename FILENAME  .wav file for processing
-  --window WINDOW      size of the the window (seconds) that will be scanned
-                       to determine the bpm. Typically less than 10 seconds.
-                       [3]
+Dependencies: scipy, numpy, pywt, matplotlib
 
