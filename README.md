@@ -1,4 +1,4 @@
-the-BPM-detector-python
+BPM Detector in Python
 =======================
 Implementation of a Beats Per Minute (BPM) detection algorithm, as presented in the paper of G. Tzanetakis, G. Essl and P. Cook titled: "Audio Analysis using the Discrete Wavelet Transform".
 
