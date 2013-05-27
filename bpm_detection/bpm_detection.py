@@ -4,24 +4,19 @@ from scipy import signal
 import pdb
 import matplotlib.pyplot as plt
 
-
-def bpm_detection(filename,window=3):
-    bpm = 0
-    levels = 4; 
-    overlap = 0.5; 
+def read_wav(filename):
 
     #open file, get metadata for audio
     try:
         wf = wave.open(filename,'rb')
     except IOError, e:
         print e
-        return 0,0,0,0
-    
+        return
+
     # typ = choose_type( wf.getsampwidth() ) #TODO: implement choose_type
     nsamps = wf.getnframes();
     assert(nsamps > 0);
-    
-    
+
     fs = wf.getframerate()
     assert(fs > 0)
 
@@ -32,6 +27,15 @@ def bpm_detection(filename,window=3):
         assert(nsamps == len(samps))
     except AssertionError, e:
         print  nsamps, "not equal to", len(samps)
+    
+    return samps, fs
+    
+    
+def bpm_detection(samps,fs,window=3):
+    bpm = 0
+    levels = 4; 
+    overlap = 0.5;
+    nsamps = len(samps)
                 
     #iterate through samples based on window size.  overlapping by 50% each time.
     window_samps = window*fs; 
@@ -76,7 +80,7 @@ def bpm_detection(filename,window=3):
             # 2) Filter
             cD = signal.lfilter([0.01],[1 -0.99],cD);
 
-            # 4) Subtract out the mean.
+            # 4) Subtractargs.filename out the mean.
 
             # 5) Decimate for reconstruction later.
             cD = abs(cD[::(2**(levels-loop-1))]);
@@ -132,8 +136,8 @@ if __name__ == '__main__':
                    help='size of the the window (seconds) that will be scanned to determine the bpm.  Typically less than 10 seconds. [3]')
 
     args = parser.parse_args()
-    
-    bpm,plot_data = bpm_detection(args.filename, args.window);
+    samps,fs = read_wav(args.filename)
+    bpm,plot_data = bpm_detection(samps,fs, args.window);
     print 'Completed.  Estimated Beats Per Minute:', bpm
     
     n = range(0,len(plot_data))
