@@ -4,6 +4,11 @@ from scipy import signal
 import pdb
 import matplotlib.pyplot as plt
 
+
+#class BpmDetection:
+#    def __init__(self,filename='/dev/rand'):
+    
+
 def read_wav(filename):
 
     #open file, get metadata for audio
@@ -34,16 +39,8 @@ def read_wav(filename):
 def bpm_detection(samps,fs,window=3):
     bpm = 0
     levels = 4; 
-    overlap = 0.5;
     nsamps = len(samps)
-                
-    #iterate through samples based on window size.  overlapping by 50% each time.
-    window_samps = window*fs; 
-    if (window_samps % 2) == 0:
-        window_step_size = int(window_samps * overlap);
-    else:
-        window_step_size = int((window_samps-1) * overlap);
-
+    window_samps = window*fs         
     window_ndx = 1; #current window we are processing
     samps_ndx = 0;  #first sample in window_ndx 
     accum_correl = []
@@ -107,7 +104,7 @@ def bpm_detection(samps,fs,window=3):
         
         #iterate at the end of the loop
         window_ndx = window_ndx + 1;
-        samps_ndx = samps_ndx+window_step_size;
+        samps_ndx = samps_ndx+window_samps;
 
     sys.stdout.write('\n');
 
