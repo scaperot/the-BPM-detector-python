@@ -4,11 +4,6 @@ from scipy import signal
 import pdb
 import matplotlib.pyplot as plt
 
-
-#class BpmDetection:
-#    def __init__(self,filename='/dev/rand'):
-    
-
 def read_wav(filename):
 
     #open file, get metadata for audio
@@ -43,7 +38,7 @@ def peak_detect(data):
         peak_ndx = numpy.where(data==-max_val)
     return peak_ndx
     
-def bpm_detector(data):
+def bpm_detector(data,fs):
     cA = [] 
     cD = []
     correl = []
@@ -95,55 +90,6 @@ def bpm_detector(data):
     return bpm,correl
     
     
-    
-def bpm_detection(samps,fs,window=3):
-    bpm = 0
-    nsamps = len(samps)
-    window_samps = int(window*fs)         
-    window_ndx = int(1); #current window we are processing
-    samps_ndx = 0;  #first sample in window_ndx 
-    max_window_ndx = nsamps / window_samps;
-
-    
-    data = []
-    correl=[]
-    bpms = numpy.zeros(max_window_ndx)
-
-    #iterate through all windows
-    while window_ndx < max_window_ndx:
-
-
-        #get a new set of samples
-        data = samps[samps_ndx:samps_ndx+window_samps]
-        if not ((len(data) % window_samps) == 0):
-            raise AssertionError( str(len(data) ) ) 
-        #print 'Read', len(data), 'samples. From',str(samps_ndx+1),'to',str(samps_ndx+window_samps)
-        
-        bpms[window_ndx],correl = bpm_detector(data)
-
-        # integration...
-        #if window_ndx == 1:
-        #    accum_correl = numpy.zeros(len(correl))
-        #accum_correl = (correl+accum_correl) / len(correl)
-        
-        #iterate at the end of the loop
-        window_ndx = window_ndx + 1;
-        samps_ndx = samps_ndx+window_samps;
-
-    # Peak detection - just involves only picking a peak within the window that we are 
-    #accum_zero = len(correl) / 2
-    #correl_final = accum_correl[accum_zero:]
-    
-    #val = numpy.amax(abs(correl_final[min_ndx:max_ndx]))    
-    #k = numpy.where(correl_final[min_ndx:max_ndx]==val)
-    #if len(k[0]) == 0:
-    #    k = numpy.where(correl_final[min_ndx:max_ndx]==-val)
-    #j = k[0]+min_ndx;
-    #bpm_final = 60./ j * (fs/max_decimation)
-    
-    bpm = numpy.median(bpms)
-    return bpm, correl
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process .wav file to determine the Beats Per Minute.')
     parser.add_argument('--filename', required=True,
@@ -153,11 +99,37 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     samps,fs = read_wav(args.filename)
-    bpm,plot_data = bpm_detection(samps,fs, args.window);
+    
+    
+    data = []
+    correl=[]
+    bpm = 0
+    nsamps = len(samps)
+    window_samps = int(args.window*fs)         
+    window_ndx = int(1); #current window we are processing
+    samps_ndx = 0;  #first sample in window_ndx 
+    max_window_ndx = nsamps / window_samps;
+    bpms = numpy.zeros(max_window_ndx)
+
+    #iterate through all windows
+    while window_ndx < max_window_ndx:
+
+        #get a new set of samples
+        data = samps[samps_ndx:samps_ndx+window_samps]
+        if not ((len(data) % window_samps) == 0):
+            raise AssertionError( str(len(data) ) ) 
+        
+        bpms[window_ndx],correl = bpm_detector(data,fs)
+        
+        #iterate at the end of the loop
+        window_ndx = window_ndx + 1;
+        samps_ndx = samps_ndx+window_samps;
+
+    bpm = numpy.median(bpms)
     print 'Completed.  Estimated Beats Per Minute:', bpm
     
-    n = range(0,len(plot_data))
-    plt.plot(n,abs(plot_data)); 
+    n = range(0,len(correl))
+    plt.plot(n,abs(correl)); 
     plt.show(False); #plot non-blocking
     time.sleep(10);
     plt.close();
