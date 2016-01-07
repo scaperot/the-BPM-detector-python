@@ -109,10 +109,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     samps,fs = read_wav(args.filename)
     
-    
     data = []
     correl=[]
     bpm = 0
+    n=0;
     nsamps = len(samps)
     window_samps = int(args.window*fs)         
     samps_ndx = 0;  #first sample in window_ndx 
@@ -120,9 +120,10 @@ if __name__ == '__main__':
     bpms = numpy.zeros(max_window_ndx)
 
     #iterate through all windows
-    for window_ndx in xrange(1,max_window_ndx):
+    for window_ndx in xrange(0,max_window_ndx):
 
         #get a new set of samples
+        #print n,":",len(bpms),":",max_window_ndx,":",fs,":",nsamps,":",samps_ndx
         data = samps[samps_ndx:samps_ndx+window_samps]
         if not ((len(data) % window_samps) == 0):
             raise AssertionError( str(len(data) ) ) 
@@ -135,6 +136,7 @@ if __name__ == '__main__':
         
         #iterate at the end of the loop
         samps_ndx = samps_ndx+window_samps;
+        n=n+1; #counter for debug...
 
     bpm = numpy.median(bpms)
     print 'Completed.  Estimated Beats Per Minute:', bpm
