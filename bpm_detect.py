@@ -6,6 +6,7 @@ from scipy import signal
 import pdb
 import matplotlib.pyplot as plt
 import seaborn
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 
 def read_wav(filename):
@@ -133,7 +134,12 @@ if __name__ == '__main__':
     bpm = numpy.median(bpms)
     print('Completed. Estimated Beats Per Minute:', bpm)
 
+    # Smoothing from http://stackoverflow.com/questions/28536191\
+    # /how-to-filter-smooth-with-scipy-numpy
+    filtered = lowess(bpms, seconds_mid, is_sorted=True, frac=0.3, it=0)
+
     plt.plot(seconds_mid, bpms)
+    plt.plot(filtered[:, 0], filtered[:, 1])
     plt.xlabel("Time (s)")
     plt.ylabel("BPM")
     plt.show()
