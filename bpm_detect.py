@@ -5,6 +5,7 @@ import wavio
 from scipy import signal
 import pdb
 import matplotlib.pyplot as plt
+import seaborn
 
 
 def read_wav(filename):
