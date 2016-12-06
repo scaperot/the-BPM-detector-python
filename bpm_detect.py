@@ -116,7 +116,7 @@ if __name__ == '__main__':
             raise AssertionError(str(len(data)))
 
         bpm, correl_temp = bpm_detector(data, fs)
-        if bpm == None:
+        if bpm is None:
             continue
         bpms[window_ndx] = bpm
         correl = correl_temp
