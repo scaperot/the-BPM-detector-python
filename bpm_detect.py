@@ -97,9 +97,9 @@ if __name__ == '__main__':
     samps, fs = read_wav(args.filename)
 
     data = []
-    correl=[]
+    correl = []
     bpm = 0
-    n=0;
+    n = 0
     nsamps = len(samps)
     window_samps = int(args.window*fs)
     samps_ndx = 0  #first sample in window_ndx
