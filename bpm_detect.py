@@ -128,5 +128,5 @@ if __name__ == '__main__':
     bpm = numpy.median(bpms)
     print('Completed. Estimated Beats Per Minute:', bpm)
 
-    plt.plot(bpm)
+    plt.plot(bpms)
     plt.show()
