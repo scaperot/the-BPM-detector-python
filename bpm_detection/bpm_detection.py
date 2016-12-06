@@ -81,7 +81,6 @@ def bpm_detector(data, fs):
 
     peak_ndx_adjusted = peak_ndx[0]+min_ndx;
     bpm = 60./ peak_ndx_adjusted * (fs/max_decimation)
-    print(bpm)
     return bpm, correl
 
 
