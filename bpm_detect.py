@@ -86,8 +86,7 @@ def bpm_detector(data, fs):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process .wav file to determine the Beats Per Minute.')
-    parser.add_argument('--filename', required=True,
-                   help='.wav file for processing')
+    parser.add_argument('filename', help='.wav file for processing')
     parser.add_argument('--window', type=float, default=3,
                    help='size of the the window (seconds) that will be scanned to determine the bpm.  Typically less than 10 seconds. [3]')
 
