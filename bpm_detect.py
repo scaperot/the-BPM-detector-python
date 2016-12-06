@@ -75,7 +75,7 @@ def bpm_detector(data, fs):
 
     midpoint = len(correl) // 2
     correl_midpoint_tmp = correl[midpoint:]
-    peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx]);
+    peak_ndx = peak_detect(correl_midpoint_tmp[int(min_ndx):int(max_ndx)])
     if len(peak_ndx) > 1:
         return no_audio_data()
 
