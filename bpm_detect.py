@@ -79,7 +79,7 @@ def bpm_detector(data, fs):
     if len(peak_ndx) > 1:
         return no_audio_data()
 
-    peak_ndx_adjusted = peak_ndx[0]+min_ndx;
+    peak_ndx_adjusted = peak_ndx[0] + min_ndx
     bpm = 60./ peak_ndx_adjusted * (fs/max_decimation)
     return bpm, correl
 
