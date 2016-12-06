@@ -101,10 +101,12 @@ if __name__ == '__main__':
     bpm = 0
     n = 0
     nsamps = len(samps)
+    seconds = numpy.arange(len(samps)) / fs
     window_samps = int(args.window*fs)
     samps_ndx = 0  #first sample in window_ndx
     max_window_ndx = nsamps // window_samps
     bpms = numpy.zeros(max_window_ndx)
+    seconds_mid = numpy.zeros(max_window_ndx)
 
     #iterate through all windows
     for window_ndx in range(0, max_window_ndx):
@@ -112,6 +114,8 @@ if __name__ == '__main__':
         #get a new set of samples
         #print n,":",len(bpms),":",max_window_ndx,":",fs,":",nsamps,":",samps_ndx
         data = samps[samps_ndx:samps_ndx + window_samps]
+        seconds_mid[window_ndx] = \
+                seconds[samps_ndx:samps_ndx + window_samps].mean()
         if not ((len(data) % window_samps) == 0):
             raise AssertionError(str(len(data)))
 
@@ -128,5 +132,7 @@ if __name__ == '__main__':
     bpm = numpy.median(bpms)
     print('Completed. Estimated Beats Per Minute:', bpm)
 
-    plt.plot(bpms)
+    plt.plot(seconds_mid, bpms)
+    plt.xlabel("Time (s)")
+    plt.ylabel("BPM")
     plt.show()
