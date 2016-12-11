@@ -104,6 +104,7 @@ if __name__ == '__main__':
                         'seconds. [3]')
     parser.add_argument('--plot', '-p', action='store_true', default=False,
                         help='Plot tempo with matplotlib')
+    parser.add_argument('--write-midi', '-w', help='Write MIDI to file')
 
     args = parser.parse_args()
     samps, fs = read_wav(args.filename)
@@ -141,20 +142,37 @@ if __name__ == '__main__':
         samps_ndx = samps_ndx + window_samps
         n = n + 1 #counter for debug...
 
+    # Smoothing from http://stackoverflow.com/questions/28536191\
+    # /how-to-filter-smooth-with-scipy-numpy
+    filtered = lowess(bpms, seconds_mid, is_sorted=True, frac=0.3, it=0)[:, 1]
+    # Create beats array
+    bps = filtered / 60
+    beats = cumtrapz(bps, seconds_mid, initial=0)
+
     bpm = numpy.median(bpms)
     print('Completed. Estimated Beats Per Minute:', bpm)
 
+    if args.write_midi is not None:
+        from midiutil.MidiFile import MIDIFile
+        pitch = 70       # MIDI note number for A#
+        track = 0
+        channel = 0
+        duration = 0.125 # In beats
+        volume = 127     # 0-127, as per the MIDI standard
+        mf = MIDIFile(1) # One track, defaults to format 1 (tempo track
+                         # automatically created)
+        # Set time signature to 1/4
+        # mf.addTimeSignature(track, 0, 1, 2, 24, notes_per_quarter=8)
+        # Create new beats array that's evenly spaced and map to this
+        beats_even = numpy.arange(0, beats.max()*1.1, 0.5)
+        bpm_mapped = numpy.interp(beats_even, beats, filtered)
+        for tempo, beat in zip(bpm_mapped, beats_even):
+            mf.addTempo(track, beat, tempo)
+            mf.addNote(track, channel, pitch, beat, duration, volume)
+        with open(args.write_midi, "wb") as output_file:
+            mf.writeFile(output_file)
+
     if args.plot:
-        # Smoothing from http://stackoverflow.com/questions/28536191\
-        # /how-to-filter-smooth-with-scipy-numpy
-        filtered = lowess(
-            bpms, seconds_mid, is_sorted=True, frac=0.3, it=0
-        )[:, 1]
-
-        # Create beats array
-        bps = filtered / 60
-        beats = cumtrapz(bps, seconds_mid, initial=0)
-
         plt.plot(beats, bpms)
         plt.plot(beats, filtered)
         plt.xlabel("Beat")
