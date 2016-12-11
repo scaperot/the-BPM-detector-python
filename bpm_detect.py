@@ -102,6 +102,8 @@ if __name__ == '__main__':
                         help='size of the the window (seconds) that will be '
                         'scanned to determine the bpm. Typically less than 10 '
                         'seconds. [3]')
+    parser.add_argument('--plot', '-p', action='store_true', default=False,
+                        help='Plot tempo with matplotlib')
 
     args = parser.parse_args()
     samps, fs = read_wav(args.filename)
@@ -142,17 +144,19 @@ if __name__ == '__main__':
     bpm = numpy.median(bpms)
     print('Completed. Estimated Beats Per Minute:', bpm)
 
-    # Smoothing from http://stackoverflow.com/questions/28536191\
-    # /how-to-filter-smooth-with-scipy-numpy
-    filtered = lowess(bpms, seconds_mid, is_sorted=True, frac=0.3, it=0)[:, 1]
-    # filtered = smooth(bpms)
+    if args.plot:
+        # Smoothing from http://stackoverflow.com/questions/28536191\
+        # /how-to-filter-smooth-with-scipy-numpy
+        filtered = lowess(
+            bpms, seconds_mid, is_sorted=True, frac=0.3, it=0
+        )[:, 1]
 
-    # Create beats array
-    bps = filtered / 60
-    beats = cumtrapz(bps, seconds_mid, initial=0)
+        # Create beats array
+        bps = filtered / 60
+        beats = cumtrapz(bps, seconds_mid, initial=0)
 
-    plt.plot(beats, bpms)
-    plt.plot(beats, filtered)
-    plt.xlabel("Beat")
-    plt.ylabel("BPM")
-    plt.show()
+        plt.plot(beats, bpms)
+        plt.plot(beats, filtered)
+        plt.xlabel("Beat")
+        plt.ylabel("BPM")
+        plt.show()
