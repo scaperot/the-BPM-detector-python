@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
     if args.write_midi is not None:
         from midiutil.MidiFile import MIDIFile
-        pitch = ags.midi_note
+        pitch = args.midi_note
         track = 0
         channel = 0
         duration = 0.125 # In beats
