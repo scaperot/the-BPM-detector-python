@@ -105,6 +105,8 @@ if __name__ == '__main__':
     parser.add_argument('--plot', '-p', action='store_true', default=False,
                         help='Plot tempo with matplotlib')
     parser.add_argument('--write-midi', '-w', help='Write MIDI to file')
+    parser.add_argument('--midi-note', '-n', help='MIDI note number for click '
+                        'track output', type=int, default=67)
 
     args = parser.parse_args()
     samps, fs = read_wav(args.filename)
@@ -154,7 +156,7 @@ if __name__ == '__main__':
 
     if args.write_midi is not None:
         from midiutil.MidiFile import MIDIFile
-        pitch = 70       # MIDI note number for A#
+        pitch = ags.midi_note
         track = 0
         channel = 0
         duration = 0.125 # In beats
