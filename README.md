@@ -23,6 +23,13 @@ pip install --upgrade matplotlib
 python ./bpm_detection/bpm_detection.py --filename ./data/*.wav 
 ```
 
+## Help
+
+### Converting mp3
+``` bash
+mpg123 -w [path/to/original.mp3] [./data/wavfile.wav]
+```
+
 ## Original Readme
 Implementation of a Beats Per Minute (BPM) detection algorithm, as presented in the paper of G. Tzanetakis, G. Essl and P. Cook titled: "Audio Analysis using the Discrete Wavelet Transform".
 
