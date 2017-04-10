@@ -16,3 +16,8 @@ Dependencies: scipy, numpy, pywt, matplotlib
 ``` bash
 source ./bin/activate
 ```
+
+## Test
+``` bash
+python ./bpm_detection/bpm_detection.py --filename ./data/*.wav 
+```
