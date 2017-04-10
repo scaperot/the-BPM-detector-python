@@ -9,6 +9,15 @@ BPM Detector in Python
 source ./bin/activate
 ```
 
+### Dependencies
+``` bash
+pip install --upgrade numpy
+pip install --upgrade PyWavelets
+pip install --upgrade scipy
+pip install --upgrade pdb
+pip install --upgrade matplotlib
+```
+
 ## Test
 ``` bash
 python ./bpm_detection/bpm_detection.py --filename ./data/*.wav 
