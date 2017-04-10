@@ -50,8 +50,8 @@ def bpm_detector(data,fs):
     cD_sum = []
     levels = 4
     max_decimation = 2**(levels-1);
-    min_ndx = 60./ 220 * (fs/max_decimation)
-    max_ndx = 60./ 40 * (fs/max_decimation)
+    min_ndx = int(60./ 220 * (fs/max_decimation))
+    max_ndx = int(60./ 40 * (fs/max_decimation))
     
     for loop in range(0,levels):
         cD = []
