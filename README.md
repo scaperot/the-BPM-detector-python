@@ -10,3 +10,9 @@ Process .wav file to determine the Beats Per Minute.
 
 Dependencies: scipy, numpy, pywt, matplotlib
 
+## Installation
+
+### Activate virtual environment
+``` bash
+source ./bin/activate
+```
