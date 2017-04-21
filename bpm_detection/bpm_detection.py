@@ -12,7 +12,7 @@ def read_wav(filename):
     except IOError, e:
         print e
         return
-
+    # test eddit
     # typ = choose_type( wf.getsampwidth() ) #TODO: implement choose_type
     nsamps = wf.getnframes();
     assert(nsamps > 0);
