@@ -10,12 +10,13 @@ source ./bin/activate
 ```
 
 ### Dependencies
+- numpy
+- PyWavelets
+- scipy
+- pdb
+- matplotlib
 ``` bash
-pip install --upgrade numpy
-pip install --upgrade PyWavelets
-pip install --upgrade scipy
-pip install --upgrade pdb
-pip install --upgrade matplotlib
+pip install -r requirements.txt
 ```
 
 ## Test
