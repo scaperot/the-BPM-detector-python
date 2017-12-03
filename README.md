@@ -13,7 +13,6 @@ source ./bin/activate
 - numpy
 - PyWavelets
 - scipy
-- pdb
 - matplotlib
 ``` bash
 pip install -r requirements.txt

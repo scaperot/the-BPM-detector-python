@@ -1,5 +1,4 @@
 numpy
 PyWavelets
 scipy
-pdb
 matplotlib
