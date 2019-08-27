@@ -31,7 +31,7 @@ def read_wav(filename):
     except IOError, e:
         print e
         return
-
+    # test eddit
     # typ = choose_type( wf.getsampwidth() ) #TODO: implement choose_type
     nsamps = wf.getnframes();
     assert(nsamps > 0);
@@ -69,9 +69,9 @@ def bpm_detector(data,fs):
     cD_sum = []
     levels = 4
     max_decimation = 2**(levels-1);
-    min_ndx = 60./ 220 * (fs/max_decimation)
-    max_ndx = 60./ 40 * (fs/max_decimation)
-    
+    min_ndx = int(60./ 220 * (fs/max_decimation))
+    max_ndx = int(60./ 40 * (fs/max_decimation))
+
     for loop in range(0,levels):
         cD = []
         # 1) DWT
@@ -109,14 +109,13 @@ def bpm_detector(data,fs):
     midpoint = len(correl) / 2
     correl_midpoint_tmp = correl[midpoint:]
     peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx]);
+
     if len(peak_ndx) > 1:
         return no_audio_data()
         
     peak_ndx_adjusted = peak_ndx[0]+min_ndx;
     bpm = 60./ peak_ndx_adjusted * (fs/max_decimation)
-    print bpm
-    return bpm,correl
-    
+    return bpm,correl,peak_ndx[0][0]
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process .wav file to determine the Beats Per Minute.')
@@ -131,13 +130,14 @@ if __name__ == '__main__':
     data = []
     correl=[]
     bpm = 0
-    n=0;
+    #n=0;
     nsamps = len(samps)
-    window_samps = int(args.window*fs)         
-    samps_ndx = 0;  #first sample in window_ndx 
+    window_samps = int(args.window*fs)    # second * frame/second  = frames
+    samps_ndx = 0;  #first sample in window_ndx     # frames
     max_window_ndx = nsamps / window_samps;
     bpms = numpy.zeros(max_window_ndx)
 
+    last_bpm = None
     #iterate through all windows
     for window_ndx in xrange(0,max_window_ndx):
 
@@ -147,15 +147,23 @@ if __name__ == '__main__':
         if not ((len(data) % window_samps) == 0):
             raise AssertionError( str(len(data) ) ) 
         
-        bpm, correl_temp = bpm_detector(data,fs)
+        bpm, correl_temp, first_ndx = bpm_detector(data,fs)
         if bpm == None:
             continue
+        
+        time_value = 1.0*(samps_ndx+first_ndx)/fs #frames / (frame/second) = second
+        bpm_value = bpm[0]
+        if last_bpm != bpm_value:
+            last_bpm = bpm_value
+            
+            print "(Time, BPM): %.2f, %.2f"% (time_value, bpm_value)
+
         bpms[window_ndx] = bpm
         correl = correl_temp
         
         #iterate at the end of the loop
         samps_ndx = samps_ndx+window_samps;
-        n=n+1; #counter for debug...
+        #n=n+1; #counter for debug...
 
     bpm = numpy.median(bpms)
     print 'Completed.  Estimated Beats Per Minute:', bpm
