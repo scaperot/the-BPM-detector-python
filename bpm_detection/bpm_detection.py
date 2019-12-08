@@ -174,6 +174,4 @@ if __name__ == "__main__":
 
     n = range(0, len(correl))
     plt.plot(n, abs(correl))
-    plt.show(block=False)
-    time.sleep(10)
-    plt.close()
+    plt.show(block=True)
