@@ -28,8 +28,8 @@ def read_wav(filename):
     #open file, get metadata for audio
     try:
         wf = wave.open(filename,'rb')
-    except IOError, e:
-        print e
+    except IOError as e:
+        print(e)
         return
 
     # typ = choose_type( wf.getsampwidth() ) #TODO: implement choose_type
@@ -41,17 +41,17 @@ def read_wav(filename):
 
     # read entire file and make into an array
     samps = list(array.array('i',wf.readframes(nsamps)))
-    #print 'Read', nsamps,'samples from', filename
+    #print('Read', nsamps,'samples from', filename)
     try:
         assert(nsamps == len(samps))
-    except AssertionError, e:
-        print  nsamps, "not equal to", len(samps)
+    except AssertionError as e:
+        print(nsamps, "not equal to", len(samps))
     
     return samps, fs
     
 # print an error when no data can be found
 def no_audio_data():
-    print "No audio data for sample, skipping..."
+    print("No audio data for sample, skipping...")
     return None, None
     
 # simple peak detection
@@ -68,53 +68,55 @@ def bpm_detector(data,fs):
     correl = []
     cD_sum = []
     levels = 4
-    max_decimation = 2**(levels-1);
-    min_ndx = 60./ 220 * (fs/max_decimation)
-    max_ndx = 60./ 40 * (fs/max_decimation)
+    max_decimation = 2**(levels-1)
+    min_ndx = math.floor(60./ 220 * (fs/max_decimation))
+    max_ndx = math.floor(60./ 40 * (fs/max_decimation))
     
     for loop in range(0,levels):
         cD = []
         # 1) DWT
         if loop == 0:
-            [cA,cD] = pywt.dwt(data,'db4');
-            cD_minlen = len(cD)/max_decimation+1;
-            cD_sum = numpy.zeros(cD_minlen);
+            [cA,cD] = pywt.dwt(data,'db4')
+            cD_minlen = len(cD)/max_decimation+1
+            cD_sum = numpy.zeros(math.floor(cD_minlen))
         else:
-            [cA,cD] = pywt.dwt(cA,'db4');
+            [cA,cD] = pywt.dwt(cA,'db4')
+
         # 2) Filter
-        cD = signal.lfilter([0.01],[1 -0.99],cD);
+        cD = signal.lfilter([0.01],[1 -0.99],cD)
 
         # 4) Subtractargs.filename out the mean.
 
         # 5) Decimate for reconstruction later.
-        cD = abs(cD[::(2**(levels-loop-1))]);
-        cD = cD - numpy.mean(cD);
+        cD = abs(cD[::(2**(levels-loop-1))])
+        cD = cD - numpy.mean(cD)
+
         # 6) Recombine the signal before ACF
         #    essentially, each level I concatenate 
         #    the detail coefs (i.e. the HPF values)
         #    to the beginning of the array
-        cD_sum = cD[0:cD_minlen] + cD_sum;
+        cD_sum = cD[0:math.floor(cD_minlen)] + cD_sum
 
     if [b for b in cA if b != 0.0] == []:
         return no_audio_data()
     # adding in the approximate data as well...    
-    cA = signal.lfilter([0.01],[1 -0.99],cA);
-    cA = abs(cA);
-    cA = cA - numpy.mean(cA);
-    cD_sum = cA[0:cD_minlen] + cD_sum;
+    cA = signal.lfilter([0.01],[1 -0.99],cA)
+    cA = abs(cA)
+    cA = cA - numpy.mean(cA)
+    cD_sum = cA[0:math.floor(cD_minlen)] + cD_sum
     
     # ACF
     correl = numpy.correlate(cD_sum,cD_sum,'full') 
     
-    midpoint = len(correl) / 2
+    midpoint = math.floor(len(correl) / 2)
     correl_midpoint_tmp = correl[midpoint:]
-    peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx]);
+    peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx])
     if len(peak_ndx) > 1:
         return no_audio_data()
         
-    peak_ndx_adjusted = peak_ndx[0]+min_ndx;
+    peak_ndx_adjusted = peak_ndx[0]+min_ndx
     bpm = 60./ peak_ndx_adjusted * (fs/max_decimation)
-    print bpm
+    print(bpm)
     return bpm,correl
     
     
@@ -134,15 +136,15 @@ if __name__ == '__main__':
     n=0;
     nsamps = len(samps)
     window_samps = int(args.window*fs)         
-    samps_ndx = 0;  #first sample in window_ndx 
-    max_window_ndx = nsamps / window_samps;
+    samps_ndx = 0  #first sample in window_ndx 
+    max_window_ndx = math.floor(nsamps / window_samps)
     bpms = numpy.zeros(max_window_ndx)
 
     #iterate through all windows
-    for window_ndx in xrange(0,max_window_ndx):
+    for window_ndx in range(0,max_window_ndx):
 
         #get a new set of samples
-        #print n,":",len(bpms),":",max_window_ndx,":",fs,":",nsamps,":",samps_ndx
+        #print(n,":",len(bpms),":",max_window_ndx_int,":",fs,":",nsamps,":",samps_ndx)
         data = samps[samps_ndx:samps_ndx+window_samps]
         if not ((len(data) % window_samps) == 0):
             raise AssertionError( str(len(data) ) ) 
@@ -158,10 +160,10 @@ if __name__ == '__main__':
         n=n+1; #counter for debug...
 
     bpm = numpy.median(bpms)
-    print 'Completed.  Estimated Beats Per Minute:', bpm
+    print('Completed.  Estimated Beats Per Minute:', bpm)
     
     n = range(0,len(correl))
     plt.plot(n,abs(correl)); 
-    plt.show(False); #plot non-blocking
+    plt.show(block=False)
     time.sleep(10);
     plt.close();
