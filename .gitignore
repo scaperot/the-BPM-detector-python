@@ -1,0 +1,13 @@
+.vscode/
+build/
+dist/
+env/
+htmlcov/
+.coverage
+*.DS_Store
+*.pyc
+*.bak
+*.mp3
+*.m4a
+*.tmp
+*.wav
