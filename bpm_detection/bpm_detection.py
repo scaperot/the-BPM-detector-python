@@ -170,7 +170,7 @@ if __name__ == "__main__":
         n = n + 1
 
     bpm = numpy.median(bpms)
-    print("Completed.  Estimated Beats Per Minute:", bpm)
+    print("Completed!  Estimated Beats Per Minute:", bpm)
 
     n = range(0, len(correl))
     plt.plot(n, abs(correl))
