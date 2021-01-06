@@ -30,10 +30,23 @@ from tkinter import filedialog
 from tkinter import *
 
 
-def read_wav(filename):
+def read_wav():
+	"""
+	root = Tk()
+	root.withdraw()
+
+	file_selected = filedialog.askopenfilename()
+	"""
+
+	#file_selected = 'C:/Users/Ivan/Desktop/a.wav'
+	file_selected = 'C:/Users/Ivan/Desktop/Simple-drum-loop-116-bpm.wav'
+
+	if file_selected == '':
+		exit("File not selected. Exiting.")
+
 	# open file, get metadata for audio
 	try:
-		wf = wave.open(filename, "rb")
+		wf = wave.open(file_selected, "rb")
 	except IOError as e:
 		print(e)
 		return
@@ -56,94 +69,63 @@ def read_wav(filename):
 	return samps, fs
 
 
-# print an error when no data can be found
-def no_audio_data():
-	print("No audio data for sample, skipping...")
-	return None, None
-
-
 # simple peak detection
 def peak_detect(data):
 	max_val = numpy.amax(abs(data))
 	peak_ndx = numpy.where(data == max_val)
 	if len(peak_ndx[0]) == 0:  # if nothing found then the max must be negative
 		peak_ndx = numpy.where(data == -max_val)
+
 	return peak_ndx
 
 
 def bpm_detector(data, fs):
-	cA = []
-	cD = []
-	correl = []
-	cD_sum = []
-	levels = 4
-	max_decimation = 2 ** (levels - 1)
+	LEVELS = 4
+	max_decimation = 2 ** (LEVELS - 1)
 	min_ndx = math.floor(60.0 / 220 * (fs / max_decimation))
 	max_ndx = math.floor(60.0 / 40 * (fs / max_decimation))
-
 	
-	for loop in range(0, levels):
-		cD = []
+	cA, cD = pywt.dwt(data, "db4")
+	cD_minlen = math.floor(len(cD) / max_decimation + 1)
+	cD_sum = numpy.zeros(cD_minlen)
+
+	for loop in range(1, LEVELS):
 		# 1) DWT
-		if loop == 0:
-			[cA, cD] = pywt.dwt(data, "db4")
-			cD_minlen = len(cD) / max_decimation + 1
-			cD_sum = numpy.zeros(math.floor(cD_minlen))
-		else:
-			[cA, cD] = pywt.dwt(cA, "db4")
+		cA, cD = pywt.dwt(cA, "db4")
 
 		# 2) Filter
-		cD = signal.lfilter([0.01], [1 - 0.99], cD)
-
-		# 4) Subtract out the mean.
+		a = 0.99
+		cD = signal.lfilter([1-a], [a], cD)
 
 		# 5) Decimate for reconstruction later.
-		cD = abs(cD[:: (2 ** (levels - loop - 1))])
-		cD = cD - numpy.mean(cD)
+		cD = abs(cD[:: (2 ** (LEVELS - loop - 1))])
+
+		# 4) Subtract out the mean.
+		cD -= numpy.mean(cD)
+		cA -= numpy.mean(cA)
 
 		# 6) Recombine the signal before ACF
-		#    Essentially, each level the detail coefs (i.e. the HPF values) are concatenated to the beginning of the array
-		cD_sum = cD[0 : math.floor(cD_minlen)] + cD_sum
-
-	if [b for b in cA if b != 0.0] == []:
-		return no_audio_data()
-
-	# Adding in the approximate data as well...
-	cA = signal.lfilter([0.01], [1 - 0.99], cA)
-	cA = abs(cA)
-	cA = cA - numpy.mean(cA)
-	cD_sum = cA[0 : math.floor(cD_minlen)] + cD_sum
+		cD_sum += cD[0 : cD_minlen]
 
 	# ACF
 	correl = numpy.correlate(cD_sum, cD_sum, "full")
 
 	midpoint = math.floor(len(correl) / 2)
 	correl_midpoint_tmp = correl[midpoint:]
+
 	peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx])
-	if len(peak_ndx) > 1:
-		return no_audio_data()
 
 	peak_ndx_adjusted = peak_ndx[0] + min_ndx
 	bpm = 60.0 / peak_ndx_adjusted * (fs / max_decimation)
-	print(bpm)
-	return bpm, correl
+
+	return bpm
 
 
 if __name__ == "__main__":
 	WINDOWS = 3
 
-	root = Tk()
-	root.withdraw()
-	file_selected = filedialog.askopenfilename()
+	samps, fs = read_wav()
 
-	if file_selected == '':
-		exit("File not selected. Exiting.")
-
-	samps, fs = read_wav(file_selected)
-	data = []
-	correl = []
-	bpm = 0
-	n = 0
 	nsamps = len(samps)
 	window_samps = int(WINDOWS * fs)
 	samps_ndx = 0  # First sample in window_ndx
@@ -154,41 +136,26 @@ if __name__ == "__main__":
 	for window_ndx in range(0, max_window_ndx):
 
 		# Get a new set of samples
-		# print(n,":",len(bpms),":",max_window_ndx_int,":",fs,":",nsamps,":",samps_ndx)
 		data = samps[samps_ndx : samps_ndx + window_samps]
 		if not ((len(data) % window_samps) == 0):
 			raise AssertionError(str(len(data)))
 
-		bpm, correl_temp = bpm_detector(data, fs)
-		if bpm is None:
-			continue
+		bpm = bpm_detector(data, fs)
 
-		bpms[window_ndx] = bpm
-		correl = correl_temp
+		bpms[window_ndx] = round(int(bpm))
 
 		# Iterate at the end of the loop
-		samps_ndx = samps_ndx + window_samps
+		samps_ndx += window_samps
 
-		# Counter for debug...
-		n = n + 1
+	bpm_median = int(numpy.median(bpms))
+	print(sorted(bpms))
+	print("Estimated Beats Per Minute:", bpm_median)
 
-	bpm = numpy.median(bpms)
-	print("Completed!  Estimated Beats Per Minute:", bpm)
-
-	n = range(0, len(correl))
-
-	fig, (ax1, ax2) = plt.subplots(2, 1)
-
+	fig, ax1 = plt.subplots()
 	time = numpy.linspace(0, nsamps/fs, num=nsamps)
 	ax1.plot(time, samps/numpy.max(samps), linewidth=1)
 	ax1.set_xlabel('time (s)')
-	ax1.set_title('Normalized sound amplitude')
-
-	n = range(0, len(correl))
-
-	ax2.plot(n, abs(correl/numpy.max(correl)), linewidth=1)
-	ax2.set_xlabel('samples')
-	ax2.set_title('Normalized correlation function')
+	ax1.set_title(f'Normalized sound amplitude\nEstimated Beats Per Minute: {bpm_median}')
 
 	plt.subplots_adjust(hspace=1)
 	plt.show()
