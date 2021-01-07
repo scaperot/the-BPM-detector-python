@@ -99,45 +99,26 @@ def bpm_detector(data, fs):
 
 	peak_ndx_adjusted = peak_ndx[0] + min_ndx
 	bpm = 60.0 / peak_ndx_adjusted * (fs / max_decimation)
+	bpm = float(bpm)
+	bpm = round(bpm, 1)
 
-	return bpm
+	return float(bpm)
 
 
-if __name__ == "__main__":
-	WINDOWS = 3
-
-	samps, fs = read_wav()
-
-	nsamps = len(samps)
-	window_samps = int(WINDOWS * fs)
-	samps_ndx = 0  # First sample in window_ndx
-	max_window_ndx = math.floor(nsamps / window_samps)
-	bpms = numpy.zeros(max_window_ndx)
-
-	# Iterate through all windows
-	for window_ndx in range(0, max_window_ndx):
-
-		# Get a new set of samples
-		data = samps[samps_ndx : samps_ndx + window_samps]
-		if not ((len(data) % window_samps) == 0):
-			raise AssertionError(str(len(data)))
-
-		bpm = bpm_detector(data, fs)
-
-		bpms[window_ndx] = round(int(bpm))
-
-		# Iterate at the end of the loop
-		samps_ndx += window_samps
-
-	bpm_median = int(numpy.median(bpms))
-	print(sorted(bpms))
-	print("Estimated Beats Per Minute:", bpm_median)
-
+def plot_signal(x, fs):
 	fig, ax1 = plt.subplots()
-	time = numpy.linspace(0, nsamps/fs, num=nsamps)
+	time = numpy.linspace(0, len(samps)/fs, num=len(samps))
 	ax1.plot(time, samps/numpy.max(samps), linewidth=1)
 	ax1.set_xlabel('time (s)')
-	ax1.set_title(f'Normalized sound amplitude\nEstimated Beats Per Minute: {bpm_median}')
+	ax1.set_title(f'Normalized sound amplitude\nEstimated Beats Per Minute: {bpm}')
 
 	plt.subplots_adjust(hspace=1)
 	plt.show()
+
+
+if __name__ == "__main__":
+	samps, fs = read_wav()
+	bpm = bpm_detector(samps, fs)
+	plot_signal(samps, fs)
+
+	print("Estimated Beats Per Minute:", bpm)
