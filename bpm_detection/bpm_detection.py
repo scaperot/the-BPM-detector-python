@@ -62,7 +62,7 @@ def peak_detect(data):
 
 
 def bpm_detector(data, fs):
-	LEVELS = 5
+	LEVELS = 4
 	max_decimation = 2 ** (LEVELS - 1)
 	min_ndx = math.floor(60.0 / 220 * (fs / max_decimation))
 	max_ndx = math.floor(60.0 / 40 * (fs / max_decimation))
@@ -71,41 +71,46 @@ def bpm_detector(data, fs):
 	cD_minlen = math.floor(len(cD) / max_decimation + 1)
 	cD_sum = numpy.zeros(cD_minlen)
 
-	for loop in range(1, LEVELS):
-		# 1) DWT
+	for i in range(1, LEVELS):
+		# 0) DWT
 		cA, cD = pywt.dwt(cA, "db4")
 
-		# 2) Filter
-		a = 0.99
-		cD = signal.lfilter([1-a], [a], cD)
+		# 1) Filter
+		cD = signal.lfilter([0.01], [1, -0.99], cD)
 
-		# 5) Decimate for reconstruction later.
-		cD = abs(cD[:: (2 ** (LEVELS - loop - 1))])
+		# 2) FWR
+		cD = abs(cD)
 
-		# 4) Subtract out the mean.
+		# 3) Downsampling
+		cD = abs(cD[:: (2 ** (LEVELS - i - 1))])
+
+		# 4) Norm
 		cD -= numpy.mean(cD)
 		cA -= numpy.mean(cA)
 
-		# 6) Recombine the signal before ACF
+		# Recombine the signal before ACF
 		cD_sum += cD[0 : cD_minlen]
 
-	# ACF
+	# 5) ACRL
 	correl = numpy.correlate(cD_sum, cD_sum, "full")
 
-	midpoint = math.floor(len(correl) / 2)
+	"""What you need to do is take the last half of your correlation 
+	result, and that should be the autocorrelation you are looking for.
+	See: https://stackoverflow.com/a/676302
+	"""
+	midpoint = len(correl) // 2
 	correl_midpoint_tmp = correl[midpoint:]
 
 	peak_ndx = peak_detect(correl_midpoint_tmp[min_ndx:max_ndx])
 
 	peak_ndx_adjusted = peak_ndx[0] + min_ndx
 	bpm = 60.0 / peak_ndx_adjusted * (fs / max_decimation)
-	bpm = float(bpm)
-	bpm = round(bpm, 1)
+	bpm = round(numpy.median(bpm), 1)
 
-	return float(bpm)
+	return bpm
 
 
-def plot_signal(samps, fs):
+def plot_signal(samps, fs, bpm):
 	fig, ax1 = plt.subplots()
 
 	time = numpy.linspace(0, len(samps)/fs, num=len(samps))
@@ -122,7 +127,8 @@ def plot_signal(samps, fs):
 
 if __name__ == "__main__":
 	samps, fs = read_wav()
+
 	bpm = bpm_detector(samps, fs)
-	
+
 	print("Estimated Beats Per Minute:", bpm)
-	plot_signal(samps, fs)
+	plot_signal(samps, fs, bpm)
