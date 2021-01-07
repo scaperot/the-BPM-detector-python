@@ -44,6 +44,7 @@ def read_wav():
 
 	# if stereo wav file
 	if data.ndim == 2:
+		# avrage from both channels
 		data = data.T[:][0] + data.T[:][1]
 		data /= 2
 
