@@ -17,10 +17,8 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-import argparse
-import array
 import math
-import wave
+import soundfile as sf
 
 import matplotlib.pyplot as plt
 import numpy
@@ -31,42 +29,25 @@ from tkinter import *
 
 
 def read_wav():
-	"""
 	root = Tk()
 	root.withdraw()
 
 	file_selected = filedialog.askopenfilename()
-	"""
 
 	#file_selected = 'C:/Users/Ivan/Desktop/a.wav'
-	file_selected = 'C:/Users/Ivan/Desktop/Simple-drum-loop-116-bpm.wav'
+	#file_selected = 'C:/Users/Ivan/Desktop/Simple-drum-loop-116-bpm.wav'
 
 	if file_selected == '':
 		exit("File not selected. Exiting.")
 
-	# open file, get metadata for audio
-	try:
-		wf = wave.open(file_selected, "rb")
-	except IOError as e:
-		print(e)
-		return
+	data, fs = sf.read(file_selected)
 
-	# typ = choose_type( wf.getsampwidth() ) # TODO: implement choose_type
-	nsamps = wf.getnframes()
-	assert nsamps > 0
+	# if stereo wav file
+	if data.ndim == 2:
+		data = data.T[:][0] + data.T[:][1]
+		data /= 2
 
-	fs = wf.getframerate()
-	assert fs > 0
-
-	# Read entire file and make into an array
-	samps = list(array.array("i", wf.readframes(nsamps)))
-
-	try:
-		assert nsamps == len(samps)
-	except AssertionError:
-		print(nsamps, "not equal to", len(samps))
-
-	return samps, fs
+	return data, fs
 
 
 # simple peak detection
@@ -80,7 +61,7 @@ def peak_detect(data):
 
 
 def bpm_detector(data, fs):
-	LEVELS = 4
+	LEVELS = 5
 	max_decimation = 2 ** (LEVELS - 1)
 	min_ndx = math.floor(60.0 / 220 * (fs / max_decimation))
 	max_ndx = math.floor(60.0 / 40 * (fs / max_decimation))
