@@ -105,13 +105,17 @@ def bpm_detector(data, fs):
 	return float(bpm)
 
 
-def plot_signal(x, fs):
+def plot_signal(samps, fs):
 	fig, ax1 = plt.subplots()
+
 	time = numpy.linspace(0, len(samps)/fs, num=len(samps))
-	ax1.plot(time, samps/numpy.max(samps), linewidth=1)
+	samps_norm = samps / numpy.max(samps)
+
+	ax1.plot(time, samps_norm, linewidth=1)
+
 	ax1.set_xlabel('time (s)')
 	ax1.set_title(f'Normalized sound amplitude\nEstimated Beats Per Minute: {bpm}')
-
+	ax1.set_xlim(0, time[-1])
 	plt.subplots_adjust(hspace=1)
 	plt.show()
 
@@ -119,6 +123,6 @@ def plot_signal(x, fs):
 if __name__ == "__main__":
 	samps, fs = read_wav()
 	bpm = bpm_detector(samps, fs)
-	plot_signal(samps, fs)
-
+	
 	print("Estimated Beats Per Minute:", bpm)
+	plot_signal(samps, fs)
