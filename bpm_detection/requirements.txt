@@ -1,0 +1,14 @@
+certifi @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_477u68wvzm/croot/certifi_1671487773341/work/certifi
+contourpy==1.0.7
+cycler==0.11.0
+fonttools==4.38.0
+kiwisolver==1.4.4
+matplotlib==3.6.3
+numpy==1.24.2
+packaging==23.0
+Pillow==9.4.0
+pyparsing==3.0.9
+python-dateutil==2.8.2
+PyWavelets==1.4.1
+scipy==1.10.0
+six==1.16.0
