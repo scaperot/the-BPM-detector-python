@@ -8,5 +8,5 @@ Based on the work done in the MATLAB code located at github.com/panagiop/the-BPM
 
 Process .wav file to determine the Beats Per Minute.
 
-Dependencies: scipy, numpy, pywavelets, matplotlib
-
+## Requirements
+Tested with Python 3.10.  Key Dependencies: scipy, numpy, pywavelets, matplotlib.  See requirements.txt
